@@ -184,7 +184,8 @@ The rickshaw uses kinematic collision, not suspension or a full rigid-body simul
 - **meshoptimizer 0.24** decoder, Arseny Kapoulkine, MIT; license in `vendor/`.
 - Street geometry and embedded surface artwork come from the supplied starter.
 
-No Git repository was present, and no commit, publication or deployment was made.
+At the initial local scene review, no Git repository was present and no
+publication had been made. The publication setup is documented below.
 `character1.png` appeared during implementation and is preserved as supplied; it
 is a 2D reference image. The implemented crowd uses the 3D `npc-man-1.glb` runtime copy.
 
@@ -275,3 +276,7 @@ standalone downloaded Mixamo working files remain local.
 Netlify reads `netlify.toml`: build command `npm run build`, publish directory
 `dist`. Once the project is linked with `netlify link`, `npm run deploy` builds
 and publishes production. No runtime API keys are required.
+
+Production project: https://gta-india-fahimc.netlify.app. Publication currently
+uses the authenticated Netlify CLI; future GitHub pushes do not automatically
+deploy until Git continuous deployment is connected in Netlify.
