@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.netlify/
+.env
+.env.*
+!.env.example
+artifacts/
+__pycache__/
+*.pyc
+Screenshot*.png
+b74b6291-ede6-4621-a8e9-f34e7e0be334.png
+*.log
+assets/tripo/
+assets/animations/*.fbx
+assets/animations/*.glb

@@ -1,0 +1,2 @@
+/* Demand-loaded offline asset bundles. A URL is fetched/parsed once per session. */
+window.QuarterAssets={pending:new Map(),load(...urls){return Promise.all(urls.map(url=>{if(!this.pending.has(url))this.pending.set(url,new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=url;s.onload=resolve;s.onerror=()=>{this.pending.delete(url);s.remove();reject(new Error('Asset failed to load: '+url));};document.head.append(s);}));return this.pending.get(url);}));},snapshot(){return {bundles:this.pending.size,urls:[...this.pending.keys()]};}};

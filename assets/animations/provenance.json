@@ -1,0 +1,33 @@
+{
+  "source": "Adobe Mixamo",
+  "downloaded": "2026-10-07",
+  "character": "CH06_NONPBR (source skeleton only)",
+  "format": "FBX Binary",
+  "skin": "Without Skin",
+  "fps": 60,
+  "keyframeReduction": "none",
+  "clips": {
+    "idle": {
+      "title": "Breathing Idle",
+      "sha256": "bb1aed523e04fd19fa56d8e0afc6b4275bff276c910794b1bbf440e59bc2c4ce",
+      "inPlace": false
+    },
+    "walk": {
+      "title": "Unarmed Walk Forward",
+      "sha256": "4e1ddaab24c20c47c9ab941f933341d41d01863e96a82f7ff87a70bafd565cee",
+      "inPlace": true
+    },
+    "run": {
+      "title": "Unarmed Run Forward",
+      "sha256": "2c03a36327ea450788404d021592fc57ee8a2310eec6741ad50701d6cd815b18",
+      "inPlace": true
+    },
+    "jump": {
+      "title": "Unarmed Jump",
+      "sha256": "7885b4b0360a2d1644d7d7be73ef061ea3cbe04c3127c8d48637921d0e5cec3f",
+      "inPlace": false
+    }
+  },
+  "processing": "Blender 4.2 glTF conversion, rest-pose and bone-axis retargeting to character2-rigged.glb, in-place horizontal motion, 60 fps quaternion keys",
+  "usage": "Motion data incorporated in this local game. Do not redistribute as a standalone motion library."
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "source": "vehicles/blue car.glb",
+    "runtime": "assets/vehicles/blue-car-runtime.glb",
+    "sourceTriangles": 1865625,
+    "triangles": 45000,
+    "length": 4.4,
+    "bytes": 9507220,
+    "dimensions": {
+      "name": "blue-car",
+      "position": [
+        -2.463226311206818,
+        0.012,
+        22
+      ],
+      "width": 1.9335473775863647,
+      "length": 4.400000095367432,
+      "height": 1.4804584980010986,
+      "triangles": 45000,
+      "materials": 1
+    }
+  },
+  {
+    "source": "vehicles/white car.glb",
+    "runtime": "assets/vehicles/white-car-runtime.glb",
+    "sourceTriangles": 1934253,
+    "triangles": 45000,
+    "length": 4.4,
+    "bytes": 3011860,
+    "dimensions": {
+      "name": "white-car",
+      "position": [
+        -2.345196180343628,
+        0.012,
+        44
+      ],
+      "width": 2.169607639312744,
+      "length": 4.400000095367432,
+      "height": 1.9585275650024414,
+      "triangles": 45000,
+      "materials": 1
+    }
+  },
+  {
+    "source": "vehicles/red car.glb",
+    "runtime": "assets/vehicles/red-car-runtime.glb",
+    "sourceTriangles": 1939056,
+    "triangles": 45000,
+    "length": 4.3,
+    "bytes": 10820308,
+    "dimensions": {
+      "name": "red-car",
+      "position": [
+        2.515509240627289,
+        0.012,
+        32
+      ],
+      "width": 1.8289815187454224,
+      "length": 4.300000190734863,
+      "height": 1.3428212404251099,
+      "triangles": 45000,
+      "materials": 1
+    }
+  },
+  {
+    "source": "vehicles/bus.glb",
+    "runtime": "assets/vehicles/bus-runtime.glb",
+    "sourceTriangles": 1703267,
+    "triangles": 64999,
+    "length": 8.4,
+    "bytes": 8253900,
+    "dimensions": {
+      "name": "bus",
+      "position": [
+        2.18,
+        0.012,
+        54.5
+      ],
+      "width": 2.5,
+      "length": 5.841032981872559,
+      "height": 3.6351327896118164,
+      "triangles": 64999,
+      "materials": 1
+    }
+  }
+]

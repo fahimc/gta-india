@@ -1,0 +1,10 @@
+{
+  "name": "gta-india-old-quarter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A procedural street game with a drivable rickshaw and shared animated crowds",
+  "scripts": {
+    "build": "node scripts/build-site.cjs",
+    "deploy": "npm run build && npx --yes netlify-cli@27.11.2 deploy --prod --dir dist --no-build"
+  }
+}

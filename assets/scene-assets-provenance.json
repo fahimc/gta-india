@@ -1,0 +1,183 @@
+{
+  "sources": {
+    "npc-man-1.glb": "2bfeef9c7803c39db2df0d5707a8203da0265e64dbeae148c72a2bd35e50ab9a",
+    "rickshaw.glb": "8e2caabf006157c1f14fa231de0aecec348a4c4e9bbaae8f087ce759843a5781",
+    "old building 1.glb": "0129ed3e81e61f8b1dbf2d78fbb176de25c63bdc0019f13bf5b56575b910ff18",
+    "npc male 2.glb": "517274dc382332f7b03eb7b6d421014bc8116fbf6ccebaa4e6d75ab21aca84e8",
+    "old building 2.glb": "490383a926dec6237a3ef18ebb16afa7dc4f86b96ad9a9be65d84ec5a13e2c2b",
+    "background.mp3": "bd8ca8a66170afaa39ac87211e8816c76c2b87f68c23fca73ad35c95bcbf714e",
+    "woman npc 1.glb": "82dd287749a8001365590f89d1e6bb9a9072976f32e77897e1baedc030d4071a",
+    "vehicles/blue car.glb": "187e4ca7183e3fa81fc9d9320fa01c44d8a1661d73c979993912c07f701c8727",
+    "vehicles/white car.glb": "31dda94644fc0962968a03ac4c4d2ce0869738b24e3ecc5068a35c9b315e02bc",
+    "vehicles/red car.glb": "a6e3e2d299ab3e0fdf715f0a2b7650aa98f7a23fc308ebadc728e9d071edfe11",
+    "vehicles/bus.glb": "71b35347bc58ee0e1922b02cd9e156257a65e82def6070c68fefe206f80f51cd",
+    "old building 3.glb": "e44c714126d130f3944fde81f98afc418c9f191402266df442734f715ab0eac3"
+  },
+  "npc": {
+    "runtime": "assets/npc-man-1-runtime.glb",
+    "repair": "recover node bind transforms from inverse bind matrices; rotate rig -90 degrees around Y to match mesh; smooth four-bone anatomical segment weights",
+    "bones": 55,
+    "vertices": 20917,
+    "triangles": 18763,
+    "animation": "Mixamo idle/walk, 12 walking and 3 idle GPU palettes"
+  },
+  "rickshaw": {
+    "runtime": "assets/rickshaw-runtime.glb",
+    "sourceTriangles": 1896545,
+    "runtimeTriangles": 104309,
+    "decimateRatio": 0.055,
+    "heightMeters": 2.35,
+    "wheels": "all-vertex paint rejection, radial limits, front axial limit excluding suspension fork; only clean inner tyre/rim rotates; fused outer edges and body stay fixed"
+  },
+  "embeddedWrappers": "python scripts/embed-scene-assets.py",
+  "runtimeSha256": {
+    "assets/npc-man-1-runtime.glb": "ba5e574afd97ff78e9c9d2db4f46f943f51e14f9cbd7afbe363e2a5b484c1014",
+    "assets/rickshaw-runtime.glb": "1254c6025fda148d66895f1fde6cf3822014c37ce55591c489675be840a9e99d",
+    "assets/old-building-1-runtime.glb": "0a108dd5b979b943ffdaba9108c250b0f938b2ee26edaa85baa5ea76457557f6",
+    "assets/npc-male-2-runtime.glb": "301fe55947dc0a9720273b6a075a12811eff60cfef0bc2fa4e523e44bf2732aa",
+    "assets/old-building-2-runtime.glb": "aba5514b19b04c7e3172076310525437318f8a23d9ad553be9f7eb41f3743115",
+    "assets/woman-npc-1-runtime.glb": "b4ec9d4459cce22634a7f904bdc73c3079a873f7e59aeb2873eb240aa35f2719",
+    "assets/vehicles/blue-car-runtime.glb": "2bfe1e8a5084fe8356102396b578c11c959e6cc14d7036a84a23e1c5430f8e68",
+    "assets/vehicles/white-car-runtime.glb": "b53625fa5f3641f88db91b209d4b7bf39e837c25522df71b80e37e8b4dc847c2",
+    "assets/vehicles/red-car-runtime.glb": "eddf357a3940cee543eb69085822825f211d89421382d7c2991d8d00c250563d",
+    "assets/vehicles/bus-runtime.glb": "acbf589b176e8016717979b9e297af43e1102b53980f666097713822d218a0ae",
+    "assets/old-building-3-runtime.glb": "58e67995e77096890ab605e8624b05d3db523901da7bec2538dc1ecaf3c563bd"
+  },
+  "building": {
+    "runtime": "assets/old-building-1-runtime.glb",
+    "sourceTriangles": 1835616,
+    "runtimeTriangles": 64246,
+    "instances": 4,
+    "decimateRatio": 0.035,
+    "maxTextureSize": 2048,
+    "sharing": "one mesh/material/map set; replacing left slots 1 and 4, right slots 2 and 5; foundations support steps beyond original street ground"
+  },
+  "npc2": {
+    "runtime": "assets/npc-male-2-runtime.glb",
+    "triangles": 21284,
+    "repair": "Recover missing joint transforms from inverse bind matrices, rotate Z-up to Y-up and translate centered rig to ground-aligned mesh. Preserve supplied multi-joint skin weights.",
+    "animation": "Mixamo idle/walk retargeted separately; 4 walk and 2 idle GPU palettes per NPC type."
+  },
+  "building2": {
+    "runtime": "assets/old-building-2-runtime.glb",
+    "runtimeTriangles": 43556,
+    "instances": 4,
+    "maxTextureSize": 2048,
+    "sharing": "One geometry/material allocation per type; fit facade above ground skirt to adjoining lot; shared foundations and party-wall infill."
+  },
+  "audio": {
+    "source": "background.mp3",
+    "loop": true,
+    "volume": 0.32,
+    "offline": "assets/background-data.js",
+    "activation": "First game input, mute button, pause when page hidden"
+  },
+  "woman": {
+    "runtime": "assets/woman-npc-1-runtime.glb",
+    "sourceTriangles": 74415,
+    "runtimeTriangles": 25301,
+    "maxTextureSize": 2048,
+    "repair": "Recover centered Z-up bind transforms, align to Y-up mesh, preserve skin weights; decimate runtime copy with top four normalized skin influences.",
+    "animation": "Separately retargeted Mixamo idle/walk; 4 walk and 2 idle GPU palettes per type.",
+    "instancesDesktop": 14
+  },
+  "parkedVehicles": {
+    "models": [
+      {
+        "source": "vehicles/blue car.glb",
+        "runtime": "assets/vehicles/blue-car-runtime.glb",
+        "sourceTriangles": 1865625,
+        "triangles": 45000,
+        "length": 4.4,
+        "bytes": 9507220,
+        "dimensions": {
+          "name": "blue-car",
+          "position": [
+            -2.463226311206818,
+            0.012,
+            22
+          ],
+          "width": 1.9335473775863647,
+          "length": 4.400000095367432,
+          "height": 1.4804584980010986,
+          "triangles": 45000,
+          "materials": 1
+        }
+      },
+      {
+        "source": "vehicles/white car.glb",
+        "runtime": "assets/vehicles/white-car-runtime.glb",
+        "sourceTriangles": 1934253,
+        "triangles": 45000,
+        "length": 4.4,
+        "bytes": 3011860,
+        "dimensions": {
+          "name": "white-car",
+          "position": [
+            -2.345196180343628,
+            0.012,
+            44
+          ],
+          "width": 2.169607639312744,
+          "length": 4.400000095367432,
+          "height": 1.9585275650024414,
+          "triangles": 45000,
+          "materials": 1
+        }
+      },
+      {
+        "source": "vehicles/red car.glb",
+        "runtime": "assets/vehicles/red-car-runtime.glb",
+        "sourceTriangles": 1939056,
+        "triangles": 45000,
+        "length": 4.3,
+        "bytes": 10820308,
+        "dimensions": {
+          "name": "red-car",
+          "position": [
+            2.515509240627289,
+            0.012,
+            32
+          ],
+          "width": 1.8289815187454224,
+          "length": 4.300000190734863,
+          "height": 1.3428212404251099,
+          "triangles": 45000,
+          "materials": 1
+        }
+      },
+      {
+        "source": "vehicles/bus.glb",
+        "runtime": "assets/vehicles/bus-runtime.glb",
+        "sourceTriangles": 1703267,
+        "triangles": 64999,
+        "length": 8.4,
+        "bytes": 8253900,
+        "dimensions": {
+          "name": "bus",
+          "position": [
+            2.18,
+            0.012,
+            54.5
+          ],
+          "width": 2.5,
+          "length": 5.841032981872559,
+          "height": 3.6351327896118164,
+          "triangles": 64999,
+          "materials": 1
+        }
+      }
+    ],
+    "materials": "One material per vehicle; red car 75 materials and bus 8 materials consolidated into 2K atlases.",
+    "collision": "Rectangular kerb footprints; four-axis separating-axis test against rickshaw; expanded foot clearance.",
+    "delivery": "assets/vehicles-data.js, standalone offline"
+  },
+  "building3": {
+    "runtime": "assets/old-building-3-runtime.glb",
+    "sourceTriangles": 44171,
+    "runtimeTriangles": 44171,
+    "instances": 4,
+    "maxTextureSize": 2048,
+    "sharing": "One geometry/material/map allocation; replacing slots 3 and 6 on both sides, existing party-wall joins and foundations maintained."
+  }
+}
