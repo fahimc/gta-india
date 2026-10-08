@@ -48,5 +48,12 @@
 - Load the publication handoff for LFS/build details. Before the next release,
   check worktree/remote state, build, run the living-street and streaming checks
   sequentially, deploy and run `verify-published.cjs <production-url>`.
-- This handoff was prepared with the implementation before publication; release
-  and final public smoke confirmation will be recorded after verification.
+- Gameplay commit `84e8cfd` was pushed to main and published as Netlify deploy
+  `6ac73ae08fa886bb14bfc9a8`. Initial CLI attempt returned 422; retry against the
+  explicit existing site ID completed successfully, without changing site setup.
+- Public smoke check passed: 9 tiles, 180 NPCs, 24 moving rickshaws, playing
+  looped sound, working pause/overview/walk transitions, smooth interpolated
+  vehicle motion and zero HTTP/shader/boot errors. About 57 fps measured here.
+  Production street/traffic/HUD/audio script hashes match the local dist build.
+- The release confirmation is a documentation-only follow-up to the gameplay
+  commit; it does not change the deployed runtime.
