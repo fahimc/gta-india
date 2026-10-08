@@ -57,3 +57,9 @@
   Production street/traffic/HUD/audio script hashes match the local dist build.
 - The release confirmation is a documentation-only follow-up to the gameplay
   commit; it does not change the deployed runtime.
+
+- Final public screenshot revealed Netlify default branding covering the vehicle
+  prompt. Disabled this project's `built_with_badge_enabled` flag through the
+  authenticated site API; the project setting is false and requires no redeploy.
+  Keep it off to preserve the game HUD. See Netlify's Powered by Netlify badge
+  documentation for this optional per-project setting.
