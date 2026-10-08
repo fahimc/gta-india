@@ -31,3 +31,8 @@
 - User now explicitly authorized GitHub push and Netlify production deployment.
 - Reuse the verified 55-file offline build and existing Netlify site `04838829-b67d-498d-9129-1c5727534e95`.
 - Publish the completed game changes, including earlier uncommitted cinematic, locomotion, traffic, radio, frontage and NPC work. Leave unused police-car and vendor brown-plaid sources uncommitted.
+- Game changes committed and pushed to `origin/main` as `340e777` (91 files). Git LFS uploaded all 13 required model/audio objects.
+- Netlify production deploy `6ac8195f5b87ec8b1f2a2b52` succeeded on the existing site; live URL `https://gta-india-fahimc.netlify.app/?v=6ac8195f`.
+- Live `verify-published.cjs` passed: 9 tiles, 180 NPCs, 24 rickshaws + 12 cars, startup/audio, pause/tour/walk, smooth traffic, cinematic reflections/sky and supplied locomotion. Zero HTTP/page/boot/shader errors.
+- Ten critical live files match local `dist` SHA256. HTML comparison normalizes Netlify's injected hosting comment; scripts match byte-for-byte.
+- Publication supersedes the earlier local-only state in this handoff. Next work starts from the published game; unused police-car and vendor brown-plaid sources remain untracked.
