@@ -23,8 +23,8 @@ window.loadQuarterRickshaw=async function({B,scene,shadow,reflectors,autoWheels}
   const pivot=new B.TransformNode('authored-wheel-steer-'+i,scene),axle=new B.TransformNode('authored-wheel-spin-'+i,scene);pivot.parent=root;pivot.position.copyFrom(center);axle.parent=pivot;m.parent=axle;
   autoWheels.push({pivot,axle,front:i===2,radius:(i===2?.100:.093)*scale});
  }
- root.collision={halfWidth:.91,minZ:-1.62,maxZ:1.64};
- root.driver={position:[0,.07,.10],grips:[[-.26,1.32,.60],[.26,1.32,.60]]};
+ root.collision={halfWidth:.83,minZ:-1.48,maxZ:1.49};
+ root.driver={position:[0,.07,.10],hip:[0,1.09,.27],grips:[[-.26,1.32,.60],[.26,1.32,.60]]};
  root.assetInfo={source:'rickshaw.glb',triangles:parts.reduce((n,m)=>n+m.getTotalIndices()/3,0),vertices:parts.reduce((n,m)=>n+m.getTotalVertices(),0),height:2.35};
  return root;
 };

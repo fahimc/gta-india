@@ -11,9 +11,9 @@ with warnings.catch_warnings():
     from scipy.spatial.transform import Rotation
 root=Path(__file__).resolve().parents[1]
 import argparse
-parser=argparse.ArgumentParser();parser.add_argument('--second',action='store_true');parser.add_argument('--woman',action='store_true');args=parser.parse_args()
-preserve_weights=args.second or args.woman
-raw=(root/('woman npc 1.glb' if args.woman else ('npc male 2.glb' if args.second else 'npc-man-1.glb'))).read_bytes();size=struct.unpack_from('<I',raw,12)[0]
+parser=argparse.ArgumentParser();parser.add_argument('--second',action='store_true');parser.add_argument('--woman',action='store_true');parser.add_argument('--brown',action='store_true');args=parser.parse_args()
+preserve_weights=args.second or args.woman or args.brown
+raw=(root/('npc/npc male brown.glb' if args.brown else 'woman npc 1.glb' if args.woman else ('npc male 2.glb' if args.second else 'npc-man-1.glb'))).read_bytes();size=struct.unpack_from('<I',raw,12)[0]
 g=json.loads(raw[20:20+size]);binary=raw[28+size:]
 skin=g['skins'][0];a=g['accessors'][skin['inverseBindMatrices']];v=g['bufferViews'][a['bufferView']]
 ibm=np.frombuffer(binary,dtype='<f4',count=a['count']*16,offset=v.get('byteOffset',0)+a.get('byteOffset',0)).reshape(-1,4,4).transpose(0,2,1)
@@ -69,6 +69,6 @@ if not preserve_weights:
 g['accessors'][attributes['JOINTS_0']].update(min=[0]*4,max=[len(skin['joints'])-1]*4)
 g['accessors'][attributes['WEIGHTS_0']].update(min=[0]*4,max=[1]*4)
 encoded=json.dumps(g,separators=(',',':')).encode();encoded+=b' '*((-len(encoded))%4)
-output=root/('assets/woman-npc-1-runtime.glb' if args.woman else ('assets/npc-male-2-runtime.glb' if args.second else 'assets/npc-man-1-runtime.glb'))
+output=root/('assets/npc-brown-runtime.glb' if args.brown else 'assets/woman-npc-1-runtime.glb' if args.woman else ('assets/npc-male-2-runtime.glb' if args.second else 'assets/npc-man-1-runtime.glb'))
 output.write_bytes(struct.pack('<III',0x46546c67,2,28+len(encoded)+len(data))+struct.pack('<II',len(encoded),0x4e4f534a)+encoded+struct.pack('<II',len(data),0x004e4942)+data)
 print(output)

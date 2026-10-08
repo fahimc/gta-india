@@ -11,5 +11,5 @@
  async function start(){await prepare();if(enabled){await audio.play();started=true;}show();}
  button.addEventListener('click',()=>{enabled=!enabled;if(!enabled)audio.pause();else if(window.STREET?.started)start().catch(()=>{});show();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)audio.pause();else if(started&&enabled)audio.play().catch(()=>{});});
- window.QUARTER_AUDIO={audio,prepare,start,snapshot:()=>({enabled,started,prepared,loop:audio.loop,paused:audio.paused,time:audio.currentTime,duration:audio.duration,volume:audio.volume})};show();prepare().catch(()=>{});
+ window.QUARTER_AUDIO={audio,prepare,start,inVehicle:false,duckVoice:false,mix(){audio.volume=this.duckVoice?.12:this.inVehicle?.28:.32;},snapshot:()=>({enabled,started,prepared,loop:audio.loop,paused:audio.paused,time:audio.currentTime,duration:audio.duration,volume:audio.volume})};show();prepare().catch(()=>{});
 })();

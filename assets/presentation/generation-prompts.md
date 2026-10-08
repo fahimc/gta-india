@@ -1,0 +1,14 @@
+# Generated presentation assets
+
+Both assets were created with the built-in Codex image generation tool on
+2026-10-08. The original PNGs are saved beside this document. WebP conversion and
+offline embedding are reproducible with `scripts/prepare-presentation-assets.py`.
+Source and runtime SHA256 hashes are recorded in `provenance.json`.
+
+## Title artwork: old-quarter-keyart.png
+
+Use case: stylized-concept. Asset type: premium open-world game title-screen key art for an existing Indian street game called OLD QUARTER. Primary request: AAA cinematic crime-game launch artwork inspired by the lush photographic lighting and polished cover art of GTA VI, with its own Indian setting and identity. Landscape 16:9 composition. Scene: an authentic dense Indian old-quarter street after a monsoon shower at golden hour, weathered shop fronts, warm shop signs, overhead cables, a green and yellow auto rickshaw, people living on the pavements, long reflections in dark wet asphalt. Subject: a charismatic Indian man with short black hair and beard wearing an open red-brown plaid shirt over grey vest and dark cargo trousers, standing near the rickshaw on the RIGHT third of the frame. Camera low, cinematic medium-wide, visually rich and sharp. Left 40 percent is quieter dark architectural negative space for separately rendered title and buttons. Warm peach sunset, teal shadows, amber practical lights, humid volumetric air, physically convincing paint and water reflections, exquisite skin and fabric detail. Premium photorealistic game promotional illustration with subtle hand-painted finish. No text, no logos, no watermark, no official GTA branding, no guns, no excessive neon, no collage panels. This is a title-screen image, not a screenshot of the existing game.
+
+## Environment sky: golden-hour-sky.png
+
+Use case: stylized-concept. Asset type: a production environment sky texture for an Indian open-world street game, to be mapped onto the inside of a 3D sphere. Create a photorealistic high-quality 360-degree equirectangular latitude-longitude panorama with a 2:1 width-to-height ratio. Full sky environment at late golden hour just after monsoon rain: warm peach and amber scattered clouds at the horizon, soft blue-grey and teal upper atmosphere, natural cloud volume, luminous warm gaps between clouds, humid believable light. Keep cloud detail subtle and soft, not stormy or oversaturated. The sun is a small softly glowing warm area close to the horizon in one direction, no giant sun. Horizon is at the vertical midpoint, upper half sky above horizon; lower half a low-detail muted warm grey ground hemisphere to provide natural environment reflections. No buildings, no people, no roads, no trees, no mountains, no text, no logos, no watermarks. Texture wraps cleanly across left and right edges with continuous cloud forms; no borders. This is a texture map, not a framed concept illustration or fisheye photograph.

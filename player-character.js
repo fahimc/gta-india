@@ -117,14 +117,17 @@ window.QuarterPlayerCharacter = class QuarterPlayerCharacter {
   }
  }
  seated(){
-  if(this.seatRotations){for(let i=0;i<this.joints.length;i++){this.joints[i].node.rotationQuaternion.copyFrom(this.seatRotations[i]);this.joints[i].node.position.copyFrom(this.joints[i].position);}this.prepare();return;}
+  const B=this.B;
+  if(this.seatRotations){for(let i=0;i<this.joints.length;i++){this.joints[i].node.rotationQuaternion.copyFrom(this.seatRotations[i]);this.joints[i].node.position.copyFrom(this.joints[i].position);}if(this.seatOffset)this.visual.position.copyFrom(this.baseOffset.add(this.seatOffset));this.prepare();return;}
   this.resetBindPose();this.rotate('Spine',.32);this.rotate('Head',-.12);
   for(const side of ['Left','Right']){
-   this.rotate(side+'UpLeg',-1.35);this.rotate(side+'Leg',1.37);this.rotate(side+'Foot',-.02);
+   this.rotate(side+'UpLeg',-1.35);this.rotate(side+'Leg',this.hero.driver.knee??1.37);this.rotate(side+'Foot',-.02);
    this.rotate(side+'Arm',-.85,0,side==='Left'?-.05:.05);this.rotate(side+'ForeArm',-.65);
   }
   // Align wrists to the real handlebar grips instead of leaving floating hands.
   this.hero.computeWorldMatrix(true);
+  this.prepare();const targetHip=B.Vector3.TransformCoordinates(new B.Vector3(...(this.hero.driver.hip||[0,1,.1])),this.hero.getWorldMatrix()),delta=targetHip.subtract(this.nodes.Hips.node.getAbsolutePosition());this.mesh.computeWorldMatrix(true);this.seatOffset=B.Vector3.TransformNormal(delta,B.Matrix.Invert(this.mesh.getWorldMatrix()));this.visual.position.copyFrom(this.baseOffset.add(this.seatOffset));this.prepare();
+  if(this.hero.driver.feet)for(const [i,side] of ['Left','Right'].entries())QuarterSeatedLegs.solve(B,this.nodes,side,B.Vector3.TransformCoordinates(new B.Vector3(...this.hero.driver.feet[i]),this.hero.getWorldMatrix()));this.prepare();
   for(const side of ['Left','Right']){
    const grip=this.hero.driver.grips[side==='Left'?0:1];
    const target=this.B.Vector3.TransformCoordinates(new this.B.Vector3(...grip),this.hero.getWorldMatrix());
@@ -136,6 +139,11 @@ window.QuarterPlayerCharacter = class QuarterPlayerCharacter {
   }
   this.seatRotations=this.joints.map(j=>j.node.rotationQuaternion.clone());
   this.prepare();
+ }
+ cacheSeat(hero){if(this.seatHero===hero)return;this.hero=hero;this.seatHero=hero;this.seatRotations=null;const parent=this.mesh.parent,position=this.mesh.position.clone(),rotation=this.mesh.rotation.clone();this.mesh.parent=hero;this.mesh.position.set(...hero.driver.position);this.mesh.rotation.setAll(0);this.visual.position.copyFrom(this.baseOffset);this.seated();this.mesh.parent=parent;this.mesh.position.copyFrom(position);this.mesh.rotation.copyFrom(rotation);}
+ actionPose(){const a=this.action;if(!a)return;const B=this.B;
+  if(a.seatBlend>0&&this.seatRotations){this.joints.forEach((j,i)=>B.Quaternion.SlerpToRef(j.node.rotationQuaternion,this.seatRotations[i],a.seatBlend,j.node.rotationQuaternion));if(this.seatOffset)this.visual.position.addInPlace(this.seatOffset.scale(a.seatBlend));}
+  else if(a.reach){for(const name of ['Spine','Spine1']){const j=this.nodes[name];j.node.rotationQuaternion=j.node.rotationQuaternion.multiply(B.Quaternion.RotationAxis(j.pitch,a.lean||0));}this.prepare();for(const side of ['Left','Right'])this.reach(side,a.target.add(new B.Vector3(side==='Left'?-.13:.13,0,0)));}
  }
  reach(side,target){
   const {B}=this,end=this.nodes[side+'Hand'].node;
@@ -165,10 +173,10 @@ window.QuarterPlayerCharacter = class QuarterPlayerCharacter {
    this.phase+=dt*this.speed*cadence;
    if(this.jumpTime>=0){this.jumpTime+=dt;if(this.jumpTime>=this.clips.jump.duration){this.jumpTime=-1;this.jumpWeight=0;}
     else this.jumpWeight=Math.max(0,Math.min(1,this.jumpTime/.12,(this.clips.jump.duration-this.jumpTime)/.20));}
-   this.pose();
-   const low=this.lowestSole();if(Number.isFinite(low))this.visual.position.y+=position.y+this.motionLift-low;
+   this.pose();this.actionPose();
+   const low=this.lowestSole();if(Number.isFinite(low)&&!(this.action?.seatBlend>0))this.visual.position.y+=position.y+this.motionLift-low;
    this.prepare();
   }else{this.resetMotion();this.seated();}
  }
- snapshot(){return {...this.info,state:this.driving?'seated':this.jumpTime>=0?'jump':this.animationWeights[2]>.5?'run':this.gait>.1?'walk':'idle',jumpTime:+this.jumpTime.toFixed(3),weights:this.animationWeights.map(w=>+w.toFixed(3)),airborneHeight:+this.motionLift.toFixed(3),gait:+this.gait.toFixed(3),phase:+this.phase.toFixed(3)};}
+ snapshot(){return {...this.info,state:this.action?'vehicle-transition':this.driving?'seated':this.jumpTime>=0?'jump':this.animationWeights[2]>.5?'run':this.gait>.1?'walk':'idle',jumpTime:+this.jumpTime.toFixed(3),weights:this.animationWeights.map(w=>+w.toFixed(3)),airborneHeight:+this.motionLift.toFixed(3),gait:+this.gait.toFixed(3),phase:+this.phase.toFixed(3)};}
 };

@@ -1,0 +1,24 @@
+[
+  {
+    "source": "npc/female+character+3d+model.glb",
+    "sourceSha256": "e764ab2e7defa27b899dc656dd0d8fa88c83796fe86218e2ca09933fa8e1fae7",
+    "runtime": "assets/female-casual-runtime.glb",
+    "runtimeSha256": "301460090aca2eb8d8f8b2ee84f405f079bb7560c1eab8dd2417d3c4ce6d173d",
+    "triangles": 23999,
+    "bones": 65,
+    "textureLimit": 2048,
+    "animations": "assets/animations/female-casual-mixamo.js",
+    "generator": "Blender 4.2 decimation preserving authored skins; independently retargeted Mixamo idle/walk"
+  },
+  {
+    "source": "npc/female lehenga+choli+3d+model.glb",
+    "sourceSha256": "b53eff6c086c0c236cdc4cbb66681260a18f9e9d7da3fdfa4015df280ad2b5dc",
+    "runtime": "assets/female-lehenga-runtime.glb",
+    "runtimeSha256": "c158a893b8076fc54f45e96f97434fd26b29ee03c97d0a6bde180cce7efb9b68",
+    "triangles": 24000,
+    "bones": 65,
+    "textureLimit": 2048,
+    "animations": "assets/animations/female-lehenga-mixamo.js",
+    "generator": "Blender 4.2 decimation preserving authored skins; independently retargeted Mixamo idle/walk"
+  }
+]

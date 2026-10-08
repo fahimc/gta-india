@@ -14,13 +14,12 @@ window.loadQuarterBuildings=async function({B,scene,shadow,reflectors,paving}){
   types.push({number,source,world,lo,hi,material,fitWidth:fitHi-fitLo,facadeZ,instances:[]});
  }
  return {
+  place(type,instance,x,z,frontX,frontZ,width){const scale=(width+.04)/type.fitWidth,yaw=Math.atan2(frontX,frontZ),placement=B.Matrix.Compose(new B.Vector3(scale,scale,scale),B.Quaternion.RotationYawPitchRoll(yaw,0,0),new B.Vector3(x-frontX*type.facadeZ*scale,.08-type.lo.y*scale,z-frontZ*type.facadeZ*scale));type.world.multiply(placement).decompose(instance.scaling,instance.rotationQuaternion,instance.position);instance.metadata={...instance.metadata,front:[frontX,frontZ],frontage:[x,z]};return scale;},
   add(side,z,width,index,number=1){
    const type=types[number-1],{source,world,lo,hi}=type;
    const instance=source.createInstance('old-building-'+number+'-'+side+'-'+index);instance.parent=null;instance.rotationQuaternion=B.Quaternion.Identity();
-   const scale=(width+.04)/type.fitWidth,yaw=-side*Math.PI/2;
-   const placement=B.Matrix.Compose(new B.Vector3(scale,scale,scale),B.Quaternion.RotationYawPitchRoll(yaw,0,0),new B.Vector3(side*(5.10+hi.z*scale),.08-lo.y*scale,z));
-   world.multiply(placement).decompose(instance.scaling,instance.rotationQuaternion,instance.position);
-   instance.isPickable=false;instance.receiveShadows=true;instance.metadata={zone:'authored-building',source:'old building '+number+'.glb',side,index};
+   const scale=this.place(type,instance,side*5.10,z,-side,0,width);
+   instance.isPickable=false;instance.receiveShadows=true;instance.metadata={...instance.metadata,zone:'authored-building',source:'old building '+number+'.glb',side,index};
    instance.freezeWorldMatrix();shadow.addShadowCaster(instance,false);reflectors.push(instance);instances.push(instance);type.instances.push(instance);
    const depth=(hi.z-lo.z)*scale+.25,base=B.MeshBuilder.CreateBox('old-building-foundation-'+side+'-'+index,{width:depth,height:.10,depth:width+.20},scene);
    base.position.set(side*(5.0+depth/2),.03,z);base.material=paving;base.receiveShadows=true;base.isPickable=false;base.freezeWorldMatrix();

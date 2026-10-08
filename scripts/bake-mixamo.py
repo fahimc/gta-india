@@ -33,8 +33,10 @@ parser.add_argument('--target',default='character2-rigged.glb')
 parser.add_argument('--output',default='assets/animations/mixamo-locomotion.js')
 parser.add_argument('--global-name',default='QUARTER_MIXAMO')
 parser.add_argument('--clips',default='idle,walk,run,jump')
+parser.add_argument('--source',default='assets/animations/mixamo-direct.glb')
+parser.add_argument('--clip-name',default=None,help='Canonical name for a single-file animation')
 args=parser.parse_args()
-source, binary, raw = read_glb(ROOT / 'assets/animations/mixamo-direct.glb')
+source, binary, raw = read_glb(ROOT / args.source)
 target, _, target_raw = read_glb(ROOT / args.target)
 
 
@@ -156,7 +158,7 @@ def interpolate(values, times, t, quaternion=False):
 
 clips = {}
 for animation in source['animations']:
-    name = animation['name'].lower()
+    name = args.clip_name or animation['name'].lower()
     if name not in args.clips.split(','):
         continue
     tracks = []

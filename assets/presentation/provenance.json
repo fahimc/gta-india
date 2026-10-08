@@ -1,0 +1,16 @@
+{
+  "old-quarter-keyart": {
+    "originalSha256": "cb7fa8f0c1cfc341f6aa195716bec1a5ee09179608c67bfe7cd76481294e6f9d",
+    "runtimeSha256": "ead9dbe035545f2cef6aea322cf1c7ea27533cd0e3daac6422d60d75dd880d09",
+    "tool": "Built-in Codex image generation",
+    "generated": "2026-10-08",
+    "promptFile": "keyart-prompt.md"
+  },
+  "golden-hour-sky": {
+    "originalSha256": "06ee1d2d5a5c6b2442781d1967cd3164a5c10fea70287d9214d8ce56a5ffb080",
+    "runtimeSha256": "271912128ffc37cb28cfc53b761939d81a0bd5d5bf7a6f0f1fc453c3f4deedec",
+    "tool": "Built-in Codex image generation",
+    "generated": "2026-10-08",
+    "promptFile": "sky-prompt.md"
+  }
+}

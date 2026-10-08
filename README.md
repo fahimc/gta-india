@@ -12,7 +12,7 @@ Open `india.html` in a desktop browser, or serve this folder with
 - **Escape / Menu** pauses the game and opens presentation settings; **Resume** returns to play.
 - **Walk / Tour** in the menu switches between the controllable character and overview.
 - **WASD / arrows** move on foot; drag the scene to orbit the camera.
-- **E / Drive** enters the rickshaw when within 3.6 m. **E / Exit** steps out when stopped.
+- **E / Enter** approaches nearby rickshaws or the driver door of a car/bus, pulls out an occupied NPC driver and takes control. **E / Exit** steps out when stopped.
 - Driving: **W / S** accelerate or reverse, **A / D** steer, **Space** brakes.
 - Walking is 2.6 m/s; **Shift** runs at 5.4 m/s; **Space** jumps on foot; **R** resets the character, vehicle and overview camera.
 - Touch: left joystick moves or drives, drag to look, hold **Run**, tap **Jump** on foot or hold **Brake** while driving; **Enter / Exit** uses the nearby rickshaw.
@@ -36,10 +36,10 @@ to the ground-aligned Y-up mesh. Sources remain untouched.
 
 Mixamo idle/walk is baked separately for each rig. Rebuild NPC 2 with
 `python scripts/bake-mixamo.py --target assets/npc-male-2-runtime.glb --output assets/animations/npc-2-mixamo.js --global-name NPC_2_MIXAMO --clips idle,walk`.
-180 pedestrians on desktop / 96 on touch devices mix all three NPC models. Each type
+180 pedestrians on desktop / 96 on touch devices mix all four NPC models. Each type
 shares geometry and original textures. Four walking and two idle palettes per type
-provide GPU instances: 18 evaluated skeletons total, independent of crowd count.
-Height variation, phase offsets, pauses and opposing pavement lanes remain.
+provide GPU instances: 24 locomotion skeletons plus 16 shared seated, talking and extraction palettes, independent of crowd count.
+Height variation, phase offsets, pauses and passing offsets remain. Standing groups face one another and take turns gesturing; other pedestrians loiter near shops.
 Both runtime GLBs and motion packs are bundled for offline use.
 
 The supplied **`woman npc 1.glb`** appears as roughly one third of the crowd. The repaired runtime copy has 25,301 triangles
@@ -87,18 +87,29 @@ The playable character uses the supplied **`character2-rigged.glb`**, with its
 original 65-bone Mixamo skeleton, skin weights and PBR textures. It has 23,935
 vertices / 19,226 triangles and is normalized to 1.78 m, facing the movement
 direction. The Tripo Mixamo rigging setting supplied **no animation clips**.
-The playable character now uses genuine motion-capture clips downloaded from
-the user's signed-in **Adobe Mixamo** session: **Breathing Idle**, **Unarmed Walk
-Forward**, **Unarmed Run Forward** and **Unarmed Jump**. Downloads use FBX Binary,
-Without Skin, 60 fps, no keyframe reduction; walk and run use In Place.
+The playable character uses **Breathing Idle**, the user's supplied
+**Walking (1)** and **Running (1)** clips, and **Unarmed Jump**. Idle and jump
+came from the user's signed-in Adobe Mixamo session. The original downloads use
+FBX Binary, Without Skin, 60 fps and no keyframe reduction. Download settings for
+the replacement walk/run files are unconfirmed; their runtime data is baked at
+60 fps, with horizontal travel removed.
 
 `scripts/convert-mixamo.py` converts the FBX files with the installed Blender 4.2.
 `scripts/combine-mixamo.py` combines their identical source rigs;
 `scripts/bake-mixamo.py` retargets all 65 bones, correcting the different bone axes
 and the Tripo rig's relaxed bind pose. Just copying bone names would deform the
-arms. The compact baked runtime data is approximately 1.22 MB, with no source
+arms. The compact baked runtime data contains no source
 character mesh, material or texture loaded into the scene. Source file hashes
 and download settings are recorded in `assets/animations/provenance.json`.
+
+To rebuild the replacement player clips, convert `Walking (1).fbx` and
+`Running (1).fbx` in `assets/animations/` using Blender:
+`blender -b --python scripts/convert-mixamo.py -- "Walking (1)" "Running (1)"`.
+Then run `python scripts/replace-player-locomotion.py`. This retargets each source
+independently and preserves the existing idle/jump clips. NPC motion uses its
+separate baked packs. `node scripts/verify-player-locomotion.cjs` checks source
+selection, grounding, loop continuity and actual keyboard-driven transitions;
+`node scripts/review-mixamo.cjs` captures several poses for visual review.
 
 Idle/walk/run crossfade on one skeleton with shared locomotion phase. Playback
 speed is calibrated from the captured planted-foot velocity and driven by actual
@@ -116,7 +127,7 @@ handlebar grips. The new body participates in nearby shadows and wet reflections
 The original GLB is unchanged; `assets/character2-data.js` embeds it for offline
 launch, and the bundled meshoptimizer decoder handles its compressed geometry.
 
-Four sampled, closed pavement loops follow nearby blocks, with opposing lanes and rounded
+Four sampled, closed pavement loops follow nearby blocks, with passing offsets and rounded
 turns. The facades were moved back to expose usable pavements. Decisions run at
 10 Hz; fixed 60 Hz movement interpolates velocity, follows queues, takes seeded
 short pauses and yields to the player. A swept-step check enforces player clearance.
@@ -129,10 +140,48 @@ retain material/neighbourhood batching and frozen transforms; moving vehicle
 parts retain local transforms, with separate spinning axles and front steering.
 Vehicle movement uses a bounded bicycle model, substeps and obstacle checks.
 
-Desktop Native includes half-resolution screen-space ambient occlusion, a native
-colour buffer, 2048 px PCF shadows and atmosphere. Balanced disables AO; touch and
+Desktop Cinematic includes half-resolution screen-space ambient occlusion, a native
+colour buffer, 2048 px PCF shadows and atmosphere. Performance disables AO; touch and
 WebGL1 omit it. Shadows refresh while actors move rather than caching ghost poses.
 The original paving top-face UV axes and contact material were corrected.
+
+## Cinematic presentation
+
+`cinematic-ui.css` and `cinematic-ui.js` add a generated-art title screen,
+display/atmosphere choices, controls help, an audio-first street reveal, and a
+matching pause menu. Titles and buttons are accessible HTML, separate from the
+artwork. The primary action starts audio before the scene fades in. The visual
+reveal does not delay player control. Reduced-motion preferences skip animation.
+
+The key art and panoramic sky were made with built-in Codex image generation.
+Their original PNGs, optimized WebPs, source hashes and prompts are in
+`assets/presentation/`. Publication includes the 435 KB title WebP and the
+embedded sky data. Title art depicts the setting as promotional art; the separate
+sky panorama is used in the actual 3D scene and its environment cubemap.
+
+`cinematic-rendering.js` defaults to golden hour after rain. A single shared
+1024 px planar reflection target reflects nearby architecture, actors and vehicles
+in a recycled pool of 22 puddles. Their deterministic locations follow the same
+80 m road grid, including streamed and negative map coordinates. Vehicle surfaces
+share one 256 px local cubemap, refreshed after moving 16 m, with bounded static
+draw lists. Authored maps retain their surface detail under a restrained clear-coat
+layer. ACES, modest highlight bloom, MSAA and warm atmospheric haze finish the
+desktop look. Directional shadows now follow the player across the map.
+
+Touch defaults to Performance: 10 recycled puddles, a 256 px planar target updated
+every third frame, FXAA, and no vehicle cubemap, AO or bloom. Desktop Performance
+uses a 512 px target. Quality, rain and time of day can be changed before entry or
+in the pause menu, and choices persist locally. Mobile Cinematic raises the
+planar target to 512 px while keeping the expensive passes off. These are raster
+reflections, not ray tracing.
+
+Babylon's official [reflection documentation](https://doc.babylonjs.com/features/featuresDeepDive/materials/using/reflectionTexture/)
+and [rendering pipeline documentation](https://doc.babylonjs.com/features/featuresDeepDive/postProcesses/defaultRenderingPipeline/)
+describe the rendering techniques used here.
+
+`node scripts/verify-cinematic-flow.cjs` reviews desktop and touch title/settings/
+gameplay/pause screens, checks audio-before-fade, quality and rain toggles, shader
+errors, and reuse/placement of the reflection pool across map positions.
 
 ## Validation
 
@@ -199,8 +248,7 @@ and mute/resume. Review captures and results are saved in `artifacts/`.
 
 All four `vehicles/` models are placed along the kerb: blue car at z=22 on the
 left, red car at z=32 on the right, white car at z=44 on the left and bus at z=54.5
-on the right. These are parked scenery with collision boundaries; the rickshaw
-remains drivable. Vehicles receive lighting, cast shadows and enter wet reflections.
+on the right. These begin occupied and parked, with collision boundaries; all can be taken and driven. Vehicles receive lighting, cast shadows and enter wet reflections.
 The source files are untouched. Their combined 7,442,201 source triangles become
 199,999 runtime triangles (45,000 per car / 64,999 for the bus). The red car's
 75 separate materials and the bus's eight are consolidated into padded texture
@@ -248,7 +296,7 @@ the initial neighbourhood, so their shared sources load during scene startup;
 subsequent tiles require no additional model downloads. Background audio is prepared
 during loading so the entry gesture can start playback before the fade. This retains offline file launches.
 
-The fixed crowd budget (180 desktop / 96 touch, 18 shared animation palettes)
+The fixed crowd budget (180 desktop / 96 touch, 24 shared locomotion palettes)
 follows four nearby map blocks. Agents on retained blocks continue their routes;
 those on retired blocks are reassigned into the largest vacant route arcs.
 They walk around corners, pause, brake for other pedestrians and yield to the
@@ -268,7 +316,7 @@ actual keyboard driving over a tile boundary, offline startup/audio and the
 `traffic.js` keeps a fixed pool of 24 desktop / 12 touch rickshaws on three nearby
 block loops. Retained routes continue across map updates; retired routes receive
 reassigned vehicles. Instances share the existing vehicle geometry, textures and
-one seated-driver animation palette. Decisions run at 20 Hz with fixed movement
+three seated NPC-driver palettes. The playable model is instantiated only once; traffic uses the supplied NPC models. Decisions run at 20 Hz with fixed movement
 steps, left-hand lane routing, queue braking, footprint checks, intersection
 reservations and an exit-clearance check before entering a junction. Rendered
 vehicle poses interpolate between fixed steps for smooth frame-rate motion. The narrow
@@ -309,3 +357,108 @@ and publishes production. No runtime API keys are required.
 Production project: https://gta-india-fahimc.netlify.app. Publication currently
 uses the authenticated Netlify CLI; future GitHub pushes do not automatically
 deploy until Git continuous deployment is connected in Netlify.
+
+## NPC interaction and vehicle takeovers
+
+`vehicle-actions.js` coordinates approach, reach/pull, entering, seated driving and
+exit transitions. The original player instance switches between walking and the
+controlled vehicle. Drivers use pooled NPC models; extracted occupants move toward
+a pavement and settle into idle. Ownership keeps taken traffic vehicles out of AI
+routing. Pools remain bounded as tiles stream. `vehicle-parts.js` separates
+conservative driver-door and inner wheel patches from fused supplied car scans.
+These are custom rig transitions, not GTA vehicle-entry motion capture; scan door
+edges and interiors still need authored vehicle assets for production quality.
+
+Six original synthesized Hindi reactions play for bumps and vehicle takeovers,
+using male Madhur and female Swara voices. Embedded clips need no runtime network
+service. `assets/voices/provenance.json` records text, generator and hashes;
+`scripts/prepare-hindi-voices.py` regenerates them. WebAudio unlocks on the entry
+gesture; positional gain/panning, background ducking and per-NPC/global cooldowns
+keep reactions intelligible. Sound mute also stops dialogue. No GTA recordings
+are included.
+
+`node scripts/verify-social-interactions.cjs [url]` checks one player instance,
+NPC drivers, social groups, occupied rickshaw/car extraction, door movement,
+actual car driving/braking/exit and a real walking bump triggering Hindi speech.
+The long crowd check also rejects complete pedestrian gridlock.
+
+The fourth pedestrian is `npc/npc male brown.glb`: a separate runtime copy
+restores missing bind transforms, preserves authored skin weights and is reduced
+from 92,518 to 24,000 triangles, with shared 2K maps. Rebuild with
+`python scripts/repair-npc-bind.py --brown`, Blender
+`--python scripts/prepare-brown-npc.py`, then retarget using `bake-mixamo.py`
+and regenerate wrappers with `embed-scene-assets.py`. Crowd counts stay fixed.
+
+Vehicle seating aligns the actual pelvis to each model's cushion, with per-car
+leg/steering targets. White hatchback and bus fronts are normalized to +Z;
+blue/red cars already use +Z. Pulling stops turning toward the extracted NPC
+before entry begins. Tight body footprints replace large collision margins;
+contact permits movement that reduces penetration, allowing reverse recovery.
+Hindi voice gain is 0.28 nearby (previously 0.85). All streamed shopfronts use
+explicit street-facing vectors. Permanent masonry backing sits behind detailed
+facades, and a tile-edge interval layout fills uncovered seed-street frontage.
+
+`review-vehicle-frames.cjs` saves seven frames per vehicle.
+`verify-driving-fixes.cjs` checks all four car/bus forward directions, pelvis
+alignment, impact/reverse recovery, 272 street-facing building placements and
+the fourth NPC's bounded palette/instance budget.
+
+
+## Traffic, cabin view and radio
+
+The bounded traffic pool keeps 24 rickshaws on desktop / 12 on touch and adds
+12 / 6 moving blue, red and white cars. These share the parked vehicle geometry,
+materials, wheel partitions and NPC driver palettes. Vehicle-specific oriented
+footprints handle queueing, intersections and takeover collision checks.
+
+Driving defaults to an interior view behind the player. Press C or tap View to
+switch to the chase camera. Arrow keys and WASD move on foot and drive vehicles.
+`vehicle-cabin.js` creates visibility copies only when a vehicle is entered;
+opaque scan glass is cut from the interior view, and car trim supplements the
+supplied cabin. Switching views or leaving restores the full exterior mesh.
+These scanned assets still have approximate glass/frame boundaries.
+
+`vehicle-radio.js` loops the supplied `music/Aaja Re.mp3` while driving, resumes
+its position on re-entry and fades out on foot. A 95 Hz high-pass, 4.8 kHz
+low-pass and mild compressor produce an in-car speaker sound. Radio gain is 0.10;
+cabin ambience stays at 0.28 (0.32 outside), so street sounds remain audible.
+Global mute and background-tab handling cover the radio too.
+
+Two additional female rigs from `npc/` are reduced to about 24,000 triangles
+with shared 2K maps and independently retargeted idle/walk clips. Six model
+variants still share 180 / 96 pedestrian instances and 60 bounded pose palettes.
+Only visible palettes animate. Eight clothing colours use an instanced shader
+attribute and vertex clothing masks, preserving shared textures and skin tones.
+Rebuild new female copies with Blender `--python scripts/prepare-female-npcs.py`,
+retarget with `bake-mixamo.py`, then run `embed-scene-assets.py`.
+
+`verify-traffic-radio.cjs` checks traffic counts, a two-minute mixed traffic
+simulation, female assets/instancing, arrow movement in five vehicles, cabin/chase
+switching, radio playback/mute/exit and mobile controls. `verify-building-frontages.cjs`
+checks all edges across streamed positive/negative tiles and captures street views.
+Tile edges are filled from 5.2 to 74.8 m; intersections retain their road opening.
+Seed building intervals join the same layout, with remaining slots generated
+and solid party-wall backing retained through detail/LOD changes.
+
+## Crowd passing and blocked traffic
+
+Walkers use two opposing pavement streams with smooth local avoidance, independent
+sidesteps and swept clearance checks. Conversation groups stand toward the
+shopfront. Walkers queue briefly behind pauses without overtaking into the
+opposing stream, which previously caused permanent wedges. The fixed pedestrian
+pool, shared geometry and visible-only animation remain unchanged.
+
+`traffic-recovery.js` performs bounded hybrid A* searches only after a stall,
+using forward/reverse steering arcs and the actual vehicle footprints. It seeks
+a clear route around the obstruction or a nearby traffic loop, checking every
+step before moving. Replanning retains the current position; completely blocked
+vehicles wait and retry rather than teleporting through obstacles. Searches are
+throttled across the traffic pool, and takeover suspends recovery immediately.
+
+`seated-legs.js` fits ankles to vehicle-specific footwells. NPC seat palettes
+are cached by model and car profile with shared geometry/textures; the player
+uses the same foot targets and caches the solved pose on entry.
+
+`verify-crowd-passing.cjs` simulates desktop/mobile pedestrians with varying speeds,
+pauses and stationary groups. `verify-driver-traffic-recovery.cjs` checks real
+player/NPC foot positions, two-minute crowd progress and an obstructed car detour.

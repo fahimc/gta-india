@@ -13,14 +13,24 @@
       "inPlace": false
     },
     "walk": {
-      "title": "Unarmed Walk Forward",
-      "sha256": "4e1ddaab24c20c47c9ab941f933341d41d01863e96a82f7ff87a70bafd565cee",
-      "inPlace": true
+      "title": "Walking (1)",
+      "sourceFile": "assets/animations/Walking (1).fbx",
+      "sha256": "4a3ef5c99ca4da6d274c3830870b1b368104d3309c23ef132be94d194246f29d",
+      "duration": 1.0499999523162842,
+      "frames": 64,
+      "nominalSpeed": 1.5594500890744178,
+      "received": "2026-10-08",
+      "processing": "Independent bind-axis retargeting to existing player; horizontal travel removed"
     },
     "run": {
-      "title": "Unarmed Run Forward",
-      "sha256": "2c03a36327ea450788404d021592fc57ee8a2310eec6741ad50701d6cd815b18",
-      "inPlace": true
+      "title": "Running (1)",
+      "sourceFile": "assets/animations/Running (1).fbx",
+      "sha256": "0e20a106eee36791763cba01edc3748a61b45ebfb8e1c850afb2347d417d5469",
+      "duration": 0.6499999761581421,
+      "frames": 40,
+      "nominalSpeed": 5.427317797774318,
+      "received": "2026-10-08",
+      "processing": "Independent bind-axis retargeting to existing player; horizontal travel removed"
     },
     "jump": {
       "title": "Unarmed Jump",
@@ -29,5 +39,6 @@
     }
   },
   "processing": "Blender 4.2 glTF conversion, rest-pose and bone-axis retargeting to character2-rigged.glb, in-place horizontal motion, 60 fps quaternion keys",
-  "usage": "Motion data incorporated in this local game. Do not redistribute as a standalone motion library."
+  "usage": "Motion data incorporated in this local game. Do not redistribute as a standalone motion library.",
+  "downloadSettingsNote": "Settings recorded above apply to the original downloads. User-supplied walk/run settings are not independently confirmed; baked runtime is 60 fps."
 }

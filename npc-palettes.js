@@ -1,22 +1,23 @@
-/* Shared GPU bone palettes: 12 walk phases + 6 idle phases, independent of crowd
-   size. Each palette draws all assigned pedestrians with GPU instances. */
+/* Shared GPU bone palettes: four walk and two idle phases per model, independent
+   of crowd size. Each palette draws all assigned pedestrians with GPU instances. */
 window.QuarterNPCPalettes=class QuarterNPCPalettes {
  async loadNPC(){
   const {B,scene}=this;
-  await QuarterAssets.load('assets/npc-man-1-data.js','assets/npc-male-2-data.js','assets/woman-npc-1-data.js','assets/animations/npc-mixamo.js','assets/animations/npc-2-mixamo.js','assets/animations/woman-mixamo.js');
+  await QuarterAssets.load('assets/female-casual-data.js','assets/female-lehenga-data.js','assets/animations/female-casual-mixamo.js','assets/animations/female-lehenga-mixamo.js','assets/npc-man-1-data.js','assets/npc-male-2-data.js','assets/woman-npc-1-data.js','assets/animations/npc-mixamo.js','assets/animations/npc-2-mixamo.js','assets/animations/woman-mixamo.js','assets/npc-brown-data.js','assets/animations/npc-brown-mixamo.js');
   this.models=[];this.pools=[];this.idlePools=[];
-  for(const [variant,data,pack,source] of [[0,window.NPC_MAN_1_BASE64,window.NPC_MIXAMO,'npc-man-1.glb'],[1,window.NPC_MALE_2_BASE64,window.NPC_2_MIXAMO,'npc male 2.glb'],[2,window.WOMAN_NPC_1_BASE64,window.WOMAN_MIXAMO,'woman npc 1.glb']]){
+  for(const [variant,data,pack,source] of [[0,window.NPC_MAN_1_BASE64,window.NPC_MIXAMO,'npc-man-1.glb'],[1,window.NPC_MALE_2_BASE64,window.NPC_2_MIXAMO,'npc male 2.glb'],[2,window.WOMAN_NPC_1_BASE64,window.WOMAN_MIXAMO,'woman npc 1.glb'],[3,window.NPC_BROWN_BASE64,window.NPC_BROWN_MIXAMO,'npc/npc male brown.glb'],[4,window.FEMALE_CASUAL_BASE64,window.FEMALE_CASUAL_MIXAMO,'npc/female+character+3d+model.glb'],[5,window.FEMALE_LEHENGA_BASE64,window.FEMALE_LEHENGA_MIXAMO,'npc/female lehenga+choli+3d+model.glb']]){
    const bytes=Uint8Array.from(atob(data),c=>c.charCodeAt(0)),url=URL.createObjectURL(new Blob([bytes],{type:'model/gltf-binary'}));
    try{this.container=await B.SceneLoader.LoadAssetContainerAsync('',url,scene,undefined,'.glb');}finally{URL.revokeObjectURL(url);}
    this.pack=pack;this.clips={};
    for(const [name,clip] of Object.entries(pack.clips)){const b=Uint8Array.from(atob(clip.data),c=>c.charCodeAt(0));this.clips[name]={...clip,values:new Float32Array(b.buffer)};}
    const walks=Array.from({length:4},(_,i)=>this.makeNPCPool('npc-'+variant+'-walk-'+i,'walk',i/4));
+   await QuarterClothing.mask(B,walks[0].mesh,[2,4,5].includes(variant));
    const idles=Array.from({length:2},(_,i)=>this.makeNPCPool('npc-'+variant+'-idle-'+i,'idle',i/2));
    const mesh=walks[0].mesh,box=walks[0].bounds,scale=1.78/(box.hi.y-box.lo.y),center=new B.Vector3((box.lo.x+box.hi.x)/2,0,(box.lo.z+box.hi.z)/2),nodes=walks[0].nodes;
    const forward=nodes.LeftToeBase.getAbsolutePosition().subtract(nodes.LeftFoot.getAbsolutePosition()).add(nodes.RightToeBase.getAbsolutePosition().subtract(nodes.RightFoot.getAbsolutePosition()));
    const facing=-Math.atan2(forward.x,forward.z);
    for(const pool of [...walks,...idles]){Object.assign(pool,{scale,center,facing,pack,clips:this.clips,variant});this.poseNPC(pool,pool.phase);}
-   this.pools.push(...walks);this.idlePools.push(...idles);this.models.push({source,mesh,material:mesh.material,walks,idles,scale});
+   this.pools.push(...walks);this.idlePools.push(...idles);this.models.push({source,mesh,material:mesh.material,walks,idles,scale,container:this.container});
   }
   this.mesh=this.models[0].mesh;this.material=this.mesh.material;this.materials=this.models.map(m=>m.material);
   this.scale=this.pools[0].scale;this.center=this.pools[0].center;this.facing=this.pools[0].facing;
@@ -28,7 +29,7 @@ window.QuarterNPCPalettes=class QuarterNPCPalettes {
   const skeleton=copy.skeletons[0],nodes={};
   for(const root of copy.rootNodes)for(const n of [root,...root.getDescendants()]){const match=n.name.match(/mixamorig[:_]?(.*)$/i);if(match)nodes[match[1]]=n;}
   mesh.name=name;mesh.isPickable=false;mesh.receiveShadows=true;mesh.computeBonesUsingShaders=true;mesh.alwaysSelectAsActiveMesh=true;
-  mesh.material.environmentIntensity=.65;mesh.material.maxSimultaneousLights=3;mesh.material.enableSpecularAntiAliasing=true;
+  QuarterClothing.prepare(B,mesh);mesh.material.environmentIntensity=.65;mesh.material.maxSimultaneousLights=3;mesh.material.enableSpecularAntiAliasing=true;
   mesh.computeWorldMatrix(true);
   const world=mesh.getWorldMatrix().clone(),box=mesh.getBoundingInfo().boundingBox,bounds={lo:box.minimumWorld.clone(),hi:box.maximumWorld.clone()};
   const positions=mesh.getVerticesData(B.VertexBuffer.PositionKind),indices=mesh.getVerticesData(B.VertexBuffer.MatricesIndicesKind),weights=mesh.getVerticesData(B.VertexBuffer.MatricesWeightsKind),feet=[];
@@ -53,14 +54,14 @@ window.QuarterNPCPalettes=class QuarterNPCPalettes {
   for(const j of pool.joints)j.node.computeWorldMatrix(true);pool.skeleton.prepare(true);pool.low=this.lowestNPCSole(pool);
  }
  flushNPCInstances(){
-  const {B}=this;for(const p of [...this.pools,...this.idlePools])p.count=0;
+  const {B}=this;for(const p of [...this.pools,...this.idlePools,...(this.actors?.talks||[])])p.count=0;
   for(const a of this.agents){
-   const pool=a.waiting?this.idlePools[a.idlePoolIndex]:this.pools[a.poolIndex];
+   const pool=a.talking?this.actors.talks[a.variant*2+a.id%2]:a.waiting?this.idlePools[a.idlePoolIndex]:this.pools[a.poolIndex];
    const scale=pool.scale*a.scale,yaw=a.heading+pool.facing,c=Math.cos(yaw),s=Math.sin(yaw);
    const place=B.Matrix.Compose(new B.Vector3(scale,scale,scale),B.Quaternion.RotationYawPitchRoll(yaw,0,0),new B.Vector3(a.x-scale*(pool.center.x*c+pool.center.z*s),a.route.pavementY-pool.low*scale,a.z-scale*(-pool.center.x*s+pool.center.z*c)));
-   const mesh=a.waiting?a.standing:a.walking;
+   const mesh=a.talking?a.talkingMesh:a.waiting?a.standing:a.walking;
    pool.world.multiply(place).decompose(mesh.scaling,mesh.rotationQuaternion,mesh.position);
-   a.walking.setEnabled(a.visible&&!a.waiting);a.standing.setEnabled(a.visible&&a.waiting);if(a.visible)pool.count++;
+   a.walking.setEnabled(a.visible&&!a.waiting);a.standing.setEnabled(a.visible&&a.waiting&&!a.talking);a.talkingMesh?.setEnabled(a.visible&&a.talking);if(a.visible)pool.count++;
   }
  }
 };

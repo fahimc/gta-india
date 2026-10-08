@@ -1,0 +1,49 @@
+{
+  "source": "Original dialogue, synthesized Hindi speech",
+  "provider": "Microsoft Edge Read Aloud / edge-tts 7.2.8",
+  "date": "2026-10-08",
+  "lines": [
+    {
+      "key": "male-watch",
+      "text": "अरे भाई, देख कर चलो!",
+      "voice": "hi-IN-MadhurNeural",
+      "event": "bump",
+      "sha256": "eef12bd13a4c97b07ccb675187923f43cf2388a94a59f5bb0dcdd082cfd8d784"
+    },
+    {
+      "key": "male-careful",
+      "text": "संभल कर! रास्ता देखो।",
+      "voice": "hi-IN-MadhurNeural",
+      "event": "bump",
+      "sha256": "42d35d72f09d7b671898fdf542dba451547173edacbc019b24e1d98670ee9f40"
+    },
+    {
+      "key": "male-vehicle",
+      "text": "अरे! मेरी गाड़ी!",
+      "voice": "hi-IN-MadhurNeural",
+      "event": "vehicle",
+      "sha256": "e0ca47fa1a5b43a4cb6c1d09844b2a2991da05b82fd47987a1ff3cd37aaf3bb0"
+    },
+    {
+      "key": "female-watch",
+      "text": "अरे, ज़रा देख कर चलिए!",
+      "voice": "hi-IN-SwaraNeural",
+      "event": "bump",
+      "sha256": "18e641766c877b8d5e107a34baef6a1811b0a2b597192039b7dbe60fd66e79e2"
+    },
+    {
+      "key": "female-careful",
+      "text": "ध्यान से चलिए!",
+      "voice": "hi-IN-SwaraNeural",
+      "event": "bump",
+      "sha256": "f18eaed9147d5b482c377aadd3ac94264a7c99bbf1f5b8bc3afa843a7d4c6fd6"
+    },
+    {
+      "key": "female-vehicle",
+      "text": "अरे! क्या कर रहे हो?",
+      "voice": "hi-IN-SwaraNeural",
+      "event": "vehicle",
+      "sha256": "ed34b6f8b943e7083d34ae98dec35cf445a55587713cd8624315f06987cd62b6"
+    }
+  ]
+}
