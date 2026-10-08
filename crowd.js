@@ -9,10 +9,10 @@ window.OldQuarterCrowd = class OldQuarterCrowd extends QuarterNPCPalettes {
  async load(){
   const {B,scene}=this;await this.loadNPC();
   this.shadowSource=B.MeshBuilder.CreateGround('pooled-foot-contact',{width:.70,height:.60},scene);this.shadowSource.material=this.contactMaterial;this.shadowSource.position.y=-100;this.shadowSource.isPickable=false;
-  this.routes=[this.makeRoute(-1),this.makeRoute(1)];const perSide=this.mobile?16:22;
+  this.routes=[this.makeRoute(-1),this.makeRoute(1)];const perSide=this.mobile?48:90;
   for(let side=0;side<2;side++)for(let i=0;i<perSide;i++){
    const poolIndex=(i*7+side*3)%12,h=this.random(.94,1.05),contact=this.shadowSource.createInstance('crowd-contact-'+side+'-'+i);contact.scaling.set(h,1,h);contact.isPickable=false;
-   const a={id:this.agents.length,route:this.routes[side],s:this.routes[side].length*(i+.22)/perSide+this.random(-1,1)+side*1.75,contact,poolIndex,scale:h,speed:.86,targetSpeed:.86,cruise:this.random(.83,.94),pause:0,nextPause:this.random(16,65),heading:0,x:0,z:0,visible:true,waiting:false};
+   const a={id:this.agents.length,route:this.routes[side],s:this.routes[side].length*(i+.22)/perSide+this.random(-1,1)+side*1.75,contact,poolIndex,scale:h,speed:1.25,targetSpeed:1.25,cruise:this.random(1.20,1.42),pause:0,nextPause:this.random(16,65),heading:0,x:0,z:0,visible:true,waiting:false};
    a.idlePoolIndex=Math.floor(poolIndex/4)*2+poolIndex%2;a.variant=Math.floor(poolIndex/4);
    a.walking=this.pools[poolIndex].mesh.createInstance('npc-walker-'+side+'-'+i);a.standing=this.idlePools[a.idlePoolIndex].mesh.createInstance('npc-waiting-'+side+'-'+i);
    for(const m of [a.walking,a.standing]){m.parent=null;m.rotationQuaternion=B.Quaternion.Identity();m.isPickable=false;m.receiveShadows=true;}
@@ -76,7 +76,7 @@ window.OldQuarterCrowd = class OldQuarterCrowd extends QuarterNPCPalettes {
   }
   this.poseTime+=dt;
   if(this.poseTime>=1/30){
-   for(const p of [...this.pools,...this.idlePools])this.poseNPC(p,this.time/(p.clip==='walk'?p.clips.walk.duration:p.clips.idle.duration)+p.phase);
+   for(const p of [...this.pools,...this.idlePools])this.poseNPC(p,this.time*(p.clip==='walk'?1.4:1)/(p.clip==='walk'?p.clips.walk.duration:p.clips.idle.duration)+p.phase);
    this.poseTime=0;
   }
   for(const a of this.agents){

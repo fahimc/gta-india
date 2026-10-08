@@ -47,7 +47,6 @@ async function loadEngine(){
 await loadEngine();
 const B=BABYLON, V=B.Vector3, C3=B.Color3;
 const mobile=matchMedia('(pointer:coarse)').matches;
-if(mobile)document.querySelector('.hint').textContent='Joystick to move · drag to look · tap Drive beside the rickshaw';
 if(fatal)return;
 const engine=engineRef=new B.Engine(canvas,true,{stencil:false,preserveDrawingBuffer:false,premultipliedAlpha:false,alpha:false,powerPreference:'high-performance',disableWebGL2Support:compatibility},false);
 note('Babylon '+B.Engine.Version+' / WebGL '+engine.webGLVersion);
@@ -428,6 +427,9 @@ progress('Preparing the character and shared walking rigs…',83);
 const crowd=await OldQuarterCrowd.create({B,scene,shadow,contactMaterial:contactM,mobile,hero});S.crowd=crowd;
 const staticCasters=shadow.getShadowMap().renderList.slice();
 const world=new QuarterTileWorld({B,scene,buildings:authoredBuildings,paving,road:roadMat,wallMats,crowd,mobile});S.world=world;
+const traffic=await QuarterTraffic.create({B,scene,hero,autoWheels,crowd,world,mobile,parked:parkedVehicles,allowed:(x,z,h)=>carAllowed(x,z,h,true)});S.traffic=traffic;
+const hud=new QuarterHUD();S.hud=hud;S.started=false;S.paused=false;
+new MutationObserver(()=>{el('status').classList.add('flash');clearTimeout(S.statusTimer);S.statusTimer=setTimeout(()=>el('status').classList.remove('flash'),3500);}).observe(el('status'),{childList:true});
 const vehicleContact=B.MeshBuilder.CreateGround('moving-rickshaw-contact',{width:2.4,height:3.3},scene);
 vehicleContact.material=contactM;vehicleContact.parent=hero;vehicleContact.position.y=.019;vehicleContact.isPickable=false;
 const sky=B.MeshBuilder.CreateSphere('atmosphere',{diameter:360,segments:16,sideOrientation:B.Mesh.BACKSIDE},scene);
@@ -474,7 +476,7 @@ function interfaceMode(){
  el('tour').setAttribute('aria-pressed',mode==='tour');el('tour').textContent=mode==='tour'?'Walk':'Tour';
  el('drive').setAttribute('aria-pressed',mode==='drive');el('drive').textContent=mode==='drive'?'Exit · E':'Drive · E';
  el('speedometer').hidden=mode!=='drive';el('joystick').classList.toggle('show',mobile&&mode!=='tour');
- el('brake').hidden=!(mobile&&mode!=='tour');el('brake').textContent=mode==='drive'?'Brake':'Jump';el('brake').setAttribute('aria-label',mode==='drive'?'Hold to brake':'Jump');
+ el('sprint').hidden=!mobile||mode==='drive';el('touchDrive').hidden=!mobile;el('touchDrive').textContent=mode==='drive'?'Exit':'Enter';el('brake').hidden=!(mobile&&mode!=='tour');el('brake').textContent=mode==='drive'?'Brake':'Jump';el('brake').setAttribute('aria-label',mode==='drive'?'Hold to brake':'Jump');
  el('status').textContent=mode==='drive'?(mobile?'Joystick forward / back · left / right to steer · hold Brake':'W / S accelerate & reverse · A / D steer · Space brake'):mode==='explore'?(mobile?'Joystick to walk · drag to look · tap Jump':'WASD walk · Shift run · Space jump · E drive'):'A living neighbourhood · '+crowd.agents.length+' pedestrians';
 }
 function reset(){
@@ -483,16 +485,18 @@ function reset(){
  player.position.set(-.9,0,1.3);player.heading=.25;player.speed=0;syncLook();interfaceMode();
  crowd.player.resetMotion();
 }
-function explore(){if(mode!=='tour')return;mode='explore';tourPlaying=false;syncLook();interfaceMode();}
+function explore(){if(!S.started||S.paused||mode!=='tour')return;mode='explore';tourPlaying=false;syncLook();interfaceMode();}
 function footAllowed(x,z,avoidCar=true){
  if(!world.walkable(x,z))return false;
- if(parkedVehicles.pointBlocked(x,z))return false;
+ if(parkedVehicles.pointBlocked(x,z)||traffic.pointBlocked(x,z))return false;
  if(obstacles.some(o=>Math.hypot(x-o[0],z-o[1])<o[2]+.25))return false;
  if(avoidCar){const dx=x-hero.position.x,dz=z-hero.position.z,c=Math.cos(vehicle.heading),s=Math.sin(vehicle.heading);
   if(Math.abs(dx*c-dz*s)<1.13&&Math.abs(dx*s+dz*c)<1.72)return false;}
  return !crowd.agents.some(a=>Math.hypot(x-a.x,z-a.z)<.46);
 }
 function interact(){
+ if(!S.started)return;
+ if(hud.open)hud.toggle(false);
  if(crowd.player.jumpTime>=0){el('status').textContent='Land before entering the rickshaw';return;}
  if(mode==='drive'){
   if(Math.abs(vehicle.speed)>.3){el('status').textContent='Brake to a stop before stepping out';return;}
@@ -505,7 +509,8 @@ function interact(){
   mode='drive';tourPlaying=false;yaw=vehicle.heading;pitch=.30;interfaceMode();
  }else{explore();el('status').textContent='Move closer to the rickshaw to drive · E';}
 }
-function carAllowed(x,z,heading){
+function carAllowed(x,z,heading,ignoreTraffic=false){
+ if(!ignoreTraffic&&traffic.carBlocked(x,z,heading))return false;
  if(parkedVehicles.carBlocked(x,z,heading))return false;
  const c=Math.cos(heading),s=Math.sin(heading);
  for(const sx of [-.91,.91])for(const sz of [hero.collision.minZ,hero.collision.maxZ]){
@@ -534,7 +539,7 @@ function updateVehicle(dt,forward,lateral){
  if(!pressed){let delta=(vehicle.heading-yaw+Math.PI*3)%(Math.PI*2)-Math.PI;yaw+=delta*(1-Math.exp(-dt*2.6));}
 }
 function updatePlayer(dt,forward,lateral){
- const len=Math.max(1,Math.hypot(forward,lateral)),speed=(keys.has('ShiftLeft')?2.65:1.65)/len;
+ const len=Math.max(1,Math.hypot(forward,lateral)),speed=(keys.has('ShiftLeft')?5.4:2.6)/len;
  const vx=(Math.sin(yaw)*forward+Math.cos(yaw)*lateral)*speed,vz=(Math.cos(yaw)*forward-Math.sin(yaw)*lateral)*speed;
  const previous=player.position.clone(),x=previous.x+vx*dt,z=previous.z+vz*dt;
  if(footAllowed(x,previous.z))player.position.x=x;if(footAllowed(player.position.x,z))player.position.z=z;
@@ -552,14 +557,15 @@ function followCamera(dt){
  V.LerpToRef(cam.position,wanted,1-Math.exp(-dt*9),cam.position);cam.setTarget(target);
 }
 function drag(ev){if(!pressed)return;const dx=ev.clientX-lastX,dy=ev.clientY-lastY;lastX=ev.clientX;lastY=ev.clientY;yaw+=dx*.0033;pitch=Math.max(-.10,Math.min(.68,pitch+dy*.0031));}
-canvas.addEventListener('pointerdown',ev=>{explore();pressed=true;lastX=ev.clientX;lastY=ev.clientY;canvas.setPointerCapture(ev.pointerId);});canvas.addEventListener('pointermove',drag);canvas.addEventListener('pointerup',()=>pressed=false);canvas.addEventListener('pointercancel',()=>pressed=false);
-window.addEventListener('keydown',ev=>{if(/^(Key[WASD]|Arrow)/.test(ev.code)){explore();keys.add(ev.code);ev.preventDefault();}if(ev.code==='Space'){if(mode==='drive')keys.add(ev.code);else if(!ev.repeat){explore();crowd.player.jump();}ev.preventDefault();}if(ev.code==='ShiftLeft'||ev.code==='ShiftRight')keys.add('ShiftLeft');if(ev.code==='KeyR')reset();if(ev.code==='KeyE'&&!ev.repeat)interact();});window.addEventListener('keyup',ev=>keys.delete(ev.code==='ShiftRight'?'ShiftLeft':ev.code));window.addEventListener('blur',()=>{keys.clear();pressed=false;move={x:0,y:0};});
+canvas.addEventListener('pointerdown',ev=>{if(!S.started||S.paused)return;explore();pressed=true;lastX=ev.clientX;lastY=ev.clientY;canvas.setPointerCapture(ev.pointerId);});canvas.addEventListener('pointermove',drag);canvas.addEventListener('pointerup',()=>pressed=false);canvas.addEventListener('pointercancel',()=>pressed=false);
+window.addEventListener('keydown',ev=>{if(!S.started||S.paused)return;if(/^(Key[WASD]|Arrow)/.test(ev.code)){explore();keys.add(ev.code);ev.preventDefault();}if(ev.code==='Space'){if(mode==='drive')keys.add(ev.code);else if(!ev.repeat){explore();crowd.player.jump();}ev.preventDefault();}if(ev.code==='ShiftLeft'||ev.code==='ShiftRight')keys.add('ShiftLeft');if(ev.code==='KeyR')reset();if(ev.code==='KeyE'&&!ev.repeat)interact();});window.addEventListener('keyup',ev=>keys.delete(ev.code==='ShiftRight'?'ShiftLeft':ev.code));window.addEventListener('blur',()=>{keys.clear();pressed=false;move={x:0,y:0};});
 const joy=el('joystick'),knob=el('knob');let joyId=null;
 joy.addEventListener('pointerdown',ev=>{explore();joyId=ev.pointerId;joy.setPointerCapture(joyId);updateJoy(ev);});joy.addEventListener('pointermove',ev=>{if(ev.pointerId===joyId)updateJoy(ev);});
 function updateJoy(ev){const r=joy.getBoundingClientRect();let x=(ev.clientX-r.left-r.width/2)/35,y=(ev.clientY-r.top-r.height/2)/35,l=Math.hypot(x,y);if(l>1){x/=l;y/=l;}move={x,y:-y};knob.style.transform=`translate(${x*27}px,${y*27}px)`;}
 function stopJoy(){joyId=null;move={x:0,y:0};knob.style.transform='translate(0,0)';}joy.addEventListener('pointerup',stopJoy);joy.addEventListener('pointercancel',stopJoy);
-el('tour').onclick=()=>{if(mode==='tour')explore();else{vehicle.speed=0;mode='tour';tourPlaying=true;tourTime=0;interfaceMode();}};
-el('drive').onclick=interact;
+el('tour').onclick=()=>{if(hud.open)hud.toggle(false);if(mode==='tour')explore();else{vehicle.speed=0;mode='tour';tourPlaying=true;tourTime=0;interfaceMode();}};
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])el('sprint').addEventListener(ev,()=>keys.delete('ShiftLeft'));el('sprint').addEventListener('pointerdown',ev=>{if(!S.started||S.paused)return;keys.add('ShiftLeft');el('sprint').setPointerCapture(ev.pointerId);ev.preventDefault();});
+el('drive').onclick=interact;el('touchDrive').onclick=interact;S.clearInput=()=>{keys.clear();stopJoy();pressed=false;};
 el('brake').addEventListener('pointerdown',ev=>{if(mode==='drive')keys.add('Space');else{explore();crowd.player.jump();}el('brake').setPointerCapture(ev.pointerId);ev.preventDefault();});
 for(const event of ['pointerup','pointercancel','lostpointercapture'])el('brake').addEventListener(event,()=>keys.delete('Space'));
 el('wet').onclick=toggleWet;el('light').onclick=toggleLight;el('reset').onclick=reset;el('quality').onclick=()=>{
@@ -574,7 +580,8 @@ scene.onBeforeDrawPhaseObservable.add(()=>{drawStart=engine._drawCalls?.current?
 scene.onAfterDrawPhaseObservable.add(()=>{mainPassDraws=(engine._drawCalls?.current??0)-drawStart;});
 function finishStartup(){
  if(S.ready)return;S.ready=true;boot.stage='Rendering';clearInterval(watchdog);note('First visible scene frames completed');
- el('bar').style.width='100%';el('loader').classList.add('gone');el('loader').setAttribute('aria-hidden','true');
+ el('bar').style.width='100%';el('loadTitle').textContent='Old Quarter.';el('loadText').textContent='Your neighbourhood is ready. Enter to begin.';
+ QUARTER_AUDIO.prepare().then(()=>{el('enterGame').disabled=false;el('enterGame').textContent='Enter Old Quarter';}).catch(e=>{el('loadText').textContent=e.message;el('enterGame').disabled=false;el('enterGame').textContent='Retry sound';});
   interfaceMode();report();
 }
 function visibleMaterialReadiness(){
@@ -587,19 +594,22 @@ function visibleMaterialReadiness(){
 function frame(){
  if(fatal||contextLost)return;
  try{
- const dt=Math.min(.06,engine.getDeltaTime()/1000);
+ const dt=S.started&&!S.paused?Math.min(.06,engine.getDeltaTime()/1000):0;
   if(mode==='tour'&&tourPlaying&&!S.reviewCamera){if(S.ready)tourTime+=dt;const t=tourTime;cam.position.set(.15+Math.sin(t*.085)*.38,3.32+Math.sin(t*.07)*.10,-5.5+(1-Math.cos(t*.065))*1.15);cam.setTarget(new V(.40,1.75,8.6));}
-  if(mode!=='tour'){
+  if(mode!=='tour'&&S.started&&!S.paused){
   const forward=(keys.has('KeyW')||keys.has('ArrowUp')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')?1:0)+move.y;
   const lateral=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+move.x;
    if(mode==='drive')updateVehicle(dt,forward,lateral);else updatePlayer(dt,forward,lateral);
    if(!S.reviewCamera)followCamera(dt);
  }
   world.update(mode==='drive'?hero.position:player.position,dt);
+  const focus=mode==='drive'?hero.position:player.position;
+  traffic.update(dt,focus,cam.position,mode==='drive'?null:player.position,{x:hero.position.x,z:hero.position.z,heading:vehicle.heading});
+  hud.update(Math.max(dt,.016),focus,mode==='drive'?vehicle.heading:player.heading,crowd,traffic,mode==='drive',Math.hypot(player.position.x-hero.position.x,player.position.z-hero.position.z)<3.6);
   crowd.update(dt,cam.position,mode==='explore'?{x:player.position.x,z:player.position.z}:null);
   crowd.updatePlayer(player.position,player.heading,mode==='explore'?player.speed:0,dt,mode!=='drive');
-  if(readyFrames%12===0){shadow.getShadowMap().renderList=staticCasters.filter(m=>!m.isDisposed()&&m.isEnabled()&&BABYLON.Vector3.Distance(m.getBoundingInfo().boundingBox.centerWorld,cam.position)<65).concat(world.shadowCasters(cam.position),crowd.shadowCasters(cam.position));
-   if(mirror)mirror.renderList=reflectors.filter(m=>m.isEnabled()&&BABYLON.Vector3.Distance(m.getBoundingInfo().boundingBox.centerWorld,cam.position)<65).concat(world.shadowCasters(cam.position),crowd.shadowCasters(cam.position));}
+  if(readyFrames%12===0){shadow.getShadowMap().renderList=staticCasters.filter(m=>!m.isDisposed()&&m.isEnabled()&&BABYLON.Vector3.Distance(m.getBoundingInfo().boundingBox.centerWorld,cam.position)<65).concat(world.shadowCasters(cam.position),crowd.shadowCasters(cam.position),traffic.shadowCasters(cam.position));
+   if(mirror)mirror.renderList=reflectors.filter(m=>m.isEnabled()&&BABYLON.Vector3.Distance(m.getBoundingInfo().boundingBox.centerWorld,cam.position)<65).concat(world.shadowCasters(cam.position),crowd.shadowCasters(cam.position),traffic.shadowCasters(cam.position));}
  mainPassDraws=0;engine._drawCalls?.fetchNewFrame();scene.render();fpsFrames++;const now=performance.now();boot.frames=++readyFrames;
  const visible=visibleMaterialReadiness();boot.rendered=visible.ready;boot.mainPassDraws=mainPassDraws;
  if(!S.ready){
@@ -635,11 +645,12 @@ watchdog=setInterval(()=>{
  if(elapsed>15){el('diagnostics').hidden=false;el('compatRetry').hidden=false;report();}
  if(boot.rendered>10&&elapsed>12){el('continueScene').hidden=false;}
 },1000);
+el('enterGame').onclick=async()=>{el('enterGame').disabled=true;try{await QUARTER_AUDIO.start();S.audioStartedAt=performance.now();S.started=true;S.fadeStartedAt=performance.now();document.body.classList.add('playing');el('loader').classList.add('gone');el('loader').setAttribute('aria-hidden','true');explore();interfaceMode();}catch(e){el('loadText').textContent=e.message;el('enterGame').disabled=false;}};
 el('continueScene').onclick=()=>{note('User chose to show the already-rendering scene');finishStartup();};
 window.addEventListener('resize',resolution);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){engine.stopRenderLoop(frame);}else if(!fatal){engine.runRenderLoop(frame);}});
 S.reset=reset;S.explore=explore;S.interact=interact;S.player=player;S.vehicle=vehicle;S.carAllowed=carAllowed;S.footAllowed=footAllowed;
-S.toggleWet=toggleWet;S.toggleLight=toggleLight;S.resolution=resolution;S.snapshot=()=>({ready:S.ready,engine:B.Engine.Version,render:[engine.getRenderWidth(),engine.getRenderHeight()],meshes:scene.meshes.length,materialChecks:S.materialChecks,shaderErrors:S.shaderErrors,mode,wet,seed:S.seed,world:world.snapshot(),crowd:crowd.snapshot(),buildings:authoredBuildings.snapshot(),parkedVehicles:parkedVehicles.snapshot(),audio:window.QUARTER_AUDIO.snapshot(),character:crowd.player.snapshot(),vehicle:{speed:vehicle.speed,heading:vehicle.heading,position:hero.position.asArray()},boot:report()});
+S.toggleWet=toggleWet;S.toggleLight=toggleLight;S.resolution=resolution;S.snapshot=()=>({ready:S.ready,engine:B.Engine.Version,render:[engine.getRenderWidth(),engine.getRenderHeight()],meshes:scene.meshes.length,materialChecks:S.materialChecks,shaderErrors:S.shaderErrors,mode,wet,seed:S.seed,started:S.started,traffic:traffic.snapshot(),world:world.snapshot(),crowd:crowd.snapshot(),buildings:authoredBuildings.snapshot(),parkedVehicles:parkedVehicles.snapshot(),audio:window.QUARTER_AUDIO.snapshot(),character:crowd.player.snapshot(),vehicle:{speed:vehicle.speed,heading:vehicle.heading,position:hero.position.asArray()},boot:report()});
 }catch(e){fail(e);}
 })();
 

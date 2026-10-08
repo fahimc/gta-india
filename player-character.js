@@ -157,7 +157,7 @@ window.QuarterPlayerCharacter = class QuarterPlayerCharacter {
   if(onFoot){
    this.contact.position.set(position.x,position.y+.009,position.z);
    this.speed+=(speed-this.speed)*(1-Math.exp(-dt*12));
-   const run=Math.max(0,Math.min(1,(speed-2.05)/.40)),moving=speed>.08?1:0,target=[1-moving,moving*(1-run),moving*run];
+   const run=Math.max(0,Math.min(1,(speed-3.2)/1.1)),moving=speed>.08?1:0,target=[1-moving,moving*(1-run),moving*run];
    const blend=1-Math.exp(-dt*14);for(let i=0;i<3;i++)this.animationWeights[i]+=(target[i]-this.animationWeights[i])*blend;
    this.gait=this.animationWeights[1]+this.animationWeights[2];
    const runBlend=this.gait>.001?this.animationWeights[2]/this.gait:0;

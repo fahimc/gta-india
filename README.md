@@ -3,17 +3,19 @@
 Open `india.html` in a desktop browser, or serve this folder with
 `python -m http.server 8096 --bind 127.0.0.1` and visit
 `http://127.0.0.1:8096/india.html`. Keep `street.js`, `crowd.js`, `npc-palettes.js`, `rickshaw-asset.js`, `building-asset.js`, `player-character.js`, `assets/` and
-`background-audio.js`, `parked-vehicles.js`, `vendor/` beside the HTML. Engine, materials and character are bundled; offline
+`background-audio.js`, `parked-vehicles.js`, `traffic.js`, `game-hud.js`, `vendor/` beside the HTML. Engine, materials and character are bundled; offline
 `file://` launch is verified. The untouched starter is `artifacts/india-original.html`.
 
 ## Controls
 
-- **Walk** leaves the overview and follows the controllable character.
+- **Enter Old Quarter** starts background sound before the scene fades in.
+- **Escape / Menu** pauses the game and opens presentation settings; **Resume** returns to play.
+- **Walk / Tour** in the menu switches between the controllable character and overview.
 - **WASD / arrows** move on foot; drag the scene to orbit the camera.
 - **E / Drive** enters the rickshaw when within 3.6 m. **E / Exit** steps out when stopped.
 - Driving: **W / S** accelerate or reverse, **A / D** steer, **Space** brakes.
-- **Shift** runs; **Space** jumps on foot; **R** resets the character, vehicle and overview camera.
-- Touch: left joystick moves or drives, drag to look, tap **Jump** on foot or hold **Brake** while driving.
+- Walking is 2.6 m/s; **Shift** runs at 5.4 m/s; **Space** jumps on foot; **R** resets the character, vehicle and overview camera.
+- Touch: left joystick moves or drives, drag to look, hold **Run**, tap **Jump** on foot or hold **Brake** while driving; **Enter / Exit** uses the nearby rickshaw.
 - **Wet**, **Daylight / Golden** and **Native / Balanced** change presentation.
 
 ## Crowd and performance
@@ -34,14 +36,13 @@ to the ground-aligned Y-up mesh. Sources remain untouched.
 
 Mixamo idle/walk is baked separately for each rig. Rebuild NPC 2 with
 `python scripts/bake-mixamo.py --target assets/npc-male-2-runtime.glb --output assets/animations/npc-2-mixamo.js --global-name NPC_2_MIXAMO --clips idle,walk`.
-44 pedestrians on desktop / 32 on touch devices mix all three NPC models. Each type
+180 pedestrians on desktop / 96 on touch devices mix all three NPC models. Each type
 shares geometry and original textures. Four walking and two idle palettes per type
 provide GPU instances: 18 evaluated skeletons total, independent of crowd count.
 Height variation, phase offsets, pauses and opposing pavement lanes remain.
 Both runtime GLBs and motion packs are bundled for offline use.
 
-The supplied **`woman npc 1.glb`** appears as 14 of the 44 desktop pedestrians
-(and 10 of the 32 touch pedestrians). The repaired runtime copy has 25,301 triangles
+The supplied **`woman npc 1.glb`** appears as roughly one third of the crowd. The repaired runtime copy has 25,301 triangles
 rather than 74,415, plus shared 2K PBR textures; the original asset stays untouched.
 Rebuild in order: `python scripts/repair-npc-bind.py --woman`, Blender
 `--python scripts/prepare-woman-npc.py`, then
@@ -76,8 +77,9 @@ closed. Other buildings remain procedural.
 Rebuild the second model with Blender `scripts/prepare-scene-assets.py -- building2`,
 then `python scripts/embed-scene-assets.py`. Source GLBs remain unchanged.
 
-**`background.mp3`** loops at 32% volume after the first click, tap or keypress,
-as required by browser audio activation. The top-bar music button toggles sound.
+**`background.mp3`** is decoded during loading and loops at 32% volume.
+The **Enter Old Quarter** click/tap starts playback; the scene fade begins only
+after playback starts. The music button toggles sound.
 Playback pauses in hidden tabs and resumes when returning if enabled. The embedded
 `assets/background-data.js` also supports offline `file://` playback.
 
@@ -114,7 +116,7 @@ handlebar grips. The new body participates in nearby shadows and wet reflections
 The original GLB is unchanged; `assets/character2-data.js` embeds it for offline
 launch, and the bundled meshoptimizer decoder handles its compressed geometry.
 
-Two sampled, closed pavement loops have straight north/south lanes and rounded
+Four sampled, closed pavement loops follow nearby blocks, with opposing lanes and rounded
 turns. The facades were moved back to expose usable pavements. Decisions run at
 10 Hz; fixed 60 Hz movement interpolates velocity, follows queues, takes seeded
 short pauses and yields to the player. A swept-step check enforces player clearance.
@@ -243,10 +245,10 @@ while streamed world geometry remains bounded independently of travel distance.
 `asset-cache.js` requests offline JavaScript asset bundles at their first
 consumer and deduplicates requests. All three building/NPC types are needed in
 the initial neighbourhood, so their shared sources load during scene startup;
-subsequent tiles require no additional model downloads. Background audio loads
-on the first input. This retains offline file launches.
+subsequent tiles require no additional model downloads. Background audio is prepared
+during loading so the entry gesture can start playback before the fade. This retains offline file launches.
 
-The fixed crowd budget (44 desktop / 32 touch, 18 shared animation palettes)
+The fixed crowd budget (180 desktop / 96 touch, 18 shared animation palettes)
 follows four nearby map blocks. Agents on retained blocks continue their routes;
 those on retired blocks are reassigned into the largest vacant route arcs.
 They walk around corners, pause, brake for other pedestrians and yield to the
@@ -257,9 +259,36 @@ Validation: `node scripts/verify-tile-world.cjs` checks repeated generation and
 retirement over 24 map positions, deterministic revisits, bounded mesh counts,
 road continuity, ray-tested pavement coverage and NPC separation. Review image:
 `artifacts/procedural-streets.png`. `node scripts/verify-tile-driving.cjs` checks
-actual keyboard driving over a tile boundary, offline demand loading and the
-32-agent mobile configuration. JSON results live in `artifacts/tile-world*.json`.
+actual keyboard driving over a tile boundary, offline startup/audio and the
+96-agent mobile configuration. JSON results live in `artifacts/tile-world*.json`.
 
+
+## Moving traffic and HUD
+
+`traffic.js` keeps a fixed pool of 24 desktop / 12 touch rickshaws on three nearby
+block loops. Retained routes continue across map updates; retired routes receive
+reassigned vehicles. Instances share the existing vehicle geometry, textures and
+one seated-driver animation palette. Decisions run at 20 Hz with fixed movement
+steps, left-hand lane routing, queue braking, footprint checks, intersection
+reservations and an exit-clearance check before entering a junction. Rendered
+vehicle poses interpolate between fixed steps for smooth frame-rate motion. The narrow
+starting street has one moving lane around its parked vehicles. Traffic yields
+to the player and the drivable rickshaw, so a parked player vehicle can cause a
+local queue. Wheels roll and steer with each vehicle's movement. Distance limits
+bound rendering, shadows and reflections as the map streams.
+
+The bottom settings strip is replaced by a circular street radar, nearby vehicle
+prompts and a pause menu. Touch movement, sprint, jump/brake and vehicle buttons
+remain available. The world stops while paused; background ambience continues.
+
+`node scripts/verify-living-street.cjs` checks sound-before-fade ordering, a
+120-second traffic/crowd simulation with no vehicle overlaps or off-road actors,
+shared vehicle geometry, walk/run speeds and animation states, pause/resume,
+and the 96-pedestrian / 12-rickshaw touch profile. `verify-tile-world.cjs`
+checks static road continuity independently of moving traffic;
+`verify-tile-driving.cjs` isolates the tile crossing from traffic, whose collision
+and flow behavior are checked in the living-street test. `verify-published.cjs`
+starts the packaged game and checks sound, crowd, traffic and browser errors.
 
 ## Build and publish
 
